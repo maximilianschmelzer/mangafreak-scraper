@@ -22,10 +22,10 @@ prompt.get([
     const filePath = `./downloads/${name}.zip`;
     const file = fs.createWriteStream(filePath);
 
-    const uri = `http://images.mangafreak.net:8080/downloads/${name}`;
+    const url = `http://images.mangafreak.net:8080/downloads/${name}`;
 
     await new Promise((resolveRequest) => {
-      request({ uri, gzip: true })
+      request({ url, gzip: true })
         .pipe(file)
         .on('finish', async () => {
           const dir = `./downloads/${name}`;
@@ -59,7 +59,8 @@ prompt.get([
                 // UnhandledPromiseRejectionWarning: Error: EPERM: operation not permitted
                 // fs.unlinkSync(path.join(__dirname, 'downloads/' + name));
                 });
-            });
+            }).catch((err)=> console.log(err))
+            ;
 
           resolveRequest();
         });

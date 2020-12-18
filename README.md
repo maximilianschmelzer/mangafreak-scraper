@@ -33,3 +33,7 @@ https://w11.mangafreak.net/Manga/Detective_Conan -> Detective_Conan
 The max. number of chapters to download. The script always starts at chapter 1.
 
 Example: 10 will result in Chapter 1 to 10.
+
+### Full example
+
+`node manga Detective_Conan 99`

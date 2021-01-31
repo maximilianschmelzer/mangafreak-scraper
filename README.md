@@ -1,39 +1,17 @@
 # mangafreak to pdf
 
-Read as many chapters of your favourite manga as you desire. Locally. On your own e-reader.
+the script automatically downloads a zip file from mangafreak.net, unzips it, and converts separate images into one handy pdf for each chapter.
 
-The script automatically downloads, unzips and converts mangafreak data to pdf files.
+requirement is [nodejs](https://nodejs.org/en/), tested with v14.15.4
 
-## Requirements
+before first usage you have to install dependencies via `npm i` inside the project path
 
-- Node (tested with v14.7.0)
+command `node manga {name}`
 
-## Usage
+for example if you want to download following manga:
 
-Install Dependencies
-<br>
-`npm i`
+https://w11.mangafreak.net/Manga/Detective_Conan
 
-Run script
-<br>
-`node manga`
+the correct command would be `node manga Detective_Conan`
 
-## Prompts
-
-### Name
-
-https://w11.mangafreak.net/Manga/ { name }
-
-Example:
-<br>
-https://w11.mangafreak.net/Manga/Detective_Conan -> Detective_Conan
-
-### Chapters
-
-The max. number of chapters to download. The script always starts at chapter 1.
-
-Example: 10 will result in Chapter 1 to 10.
-
-### Full example
-
-`node manga Detective_Conan 99`
+downloaded mangas can be found in `downloads/{name}/{name}_{1-x}.pdf`

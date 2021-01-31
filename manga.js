@@ -1,69 +1,94 @@
-const request = require('request');
-const prompt = require('prompt');
-const fs = require('fs');
-const unzipper = require('unzipper');
-const PDFDocument = require('pdfkit');
-const path = require('path');
+import fs from 'fs'
+import unzipper from 'unzipper'
+import PDFDocument from 'pdfkit'
+import path from 'path'
+import axios from 'axios'
 
-prompt.start();
+(async () => {
+  const startTime = Math.floor(Date.now() / 1000)
 
-prompt.get([
-  {
-    name: 'name',
-    required: true,
-  },
-  {
-    name: 'chapters',
-    required: true,
-  },
-], async (error, result) => {
-  for (let i = 1; i <= result.chapters; i++) {
-    const name = `${result.name}_${i}`;
-    const filePath = `./downloads/${name}.zip`;
-    const file = fs.createWriteStream(filePath);
+  var myArgs = process.argv.slice(2)
 
-    const url = `http://images.mangafreak.net:8080/downloads/${name}`;
+  const inputName = myArgs[0]
 
-    await new Promise((resolveRequest) => {
-      request({ url, gzip: true })
-        .pipe(file)
-        .on('finish', async () => {
-          const dir = `./downloads/${name}`;
-
-          fs.createReadStream(filePath)
-            .pipe(unzipper.Extract({ path: dir }))
-            .on('entry', (entry) => entry.autodrain())
-            .promise()
-            .then(() => {
-              fs.unlinkSync(filePath);
-
-              new Promise((resolvePdf) => fs.readdir(dir, (err, files) => {
-                const doc = new PDFDocument({ autoFirstPage: false });
-
-                doc.pipe(fs.createWriteStream(`${dir.split('_').join(' ')}.pdf`));
-
-                for (let ii = 1; ii <= files.length; ii++) {
-                  const imagePath = path.join(__dirname, `${dir}/${name.toLowerCase()}_${ii}.jpg`);
-
-                  const img = doc.openImage(imagePath);
-                  doc.addPage({ size: [img.width, img.height] }).image(imagePath, 0, 0);
-
-                  fs.unlinkSync(imagePath);
-                }
-
-                doc.end();
-
-                resolvePdf();
-              }))
-                .then(() => {
-                // UnhandledPromiseRejectionWarning: Error: EPERM: operation not permitted
-                // fs.unlinkSync(path.join(__dirname, 'downloads/' + name));
-                });
-            }).catch((err)=> console.log(err))
-            ;
-
-          resolveRequest();
-        });
-    });
+  if (!inputName) {
+    console.log('> title required')
+    process.exit()
   }
-});
+
+  let i = 1
+  let downloadCount = 0
+
+  const mangaFolder = path.join(path.resolve(), 'downloads', inputName)
+  if (!fs.existsSync(mangaFolder)) {
+    fs.mkdirSync(mangaFolder)
+  }
+
+  while (true) {
+    const name = `${inputName}_${i}`
+    const base = `downloads/${inputName}`
+    const unzippedImagesFolderPath = path.join(path.resolve(), 'downloads', inputName, name)
+    const zippedImagesFolderPath = `${unzippedImagesFolderPath}.zip`
+    const url = `http://images.mangafreak.net:8080/downloads/${name}`
+    const pdfPath = path.join(path.resolve(), 'downloads', inputName, `${name}.pdf`)
+
+    if (fs.existsSync(pdfPath)) {
+      console.log('')
+      console.log(`> chapter ${i}`)
+      console.log('> skipped')
+      i++
+      continue
+    }
+
+    await axios({ method: 'get', url, responseType: 'stream' })
+      .then(response => {
+        const writeStream = fs.createWriteStream(zippedImagesFolderPath)
+
+        return new Promise((resolve, reject) => {
+          response.data.pipe(writeStream)
+
+          writeStream.on('close', () => resolve())
+        })
+      })
+
+    if (fs.statSync(zippedImagesFolderPath).size === 0) {
+      fs.unlinkSync(zippedImagesFolderPath)
+      break
+    }
+
+    console.log('')
+    console.log(`> chapter ${i}`)
+
+    i++
+    downloadCount++
+
+    await fs.createReadStream(zippedImagesFolderPath)
+      .pipe(unzipper.Extract({ path: unzippedImagesFolderPath }))
+      .promise()
+
+    fs.unlinkSync(zippedImagesFolderPath)
+
+    const files = fs.readdirSync(unzippedImagesFolderPath)
+
+    const doc = new PDFDocument({ autoFirstPage: false })
+
+    doc.pipe(fs.createWriteStream(pdfPath))
+
+    for (let i = 1; i <= files.length; i++) {
+      const imagePath = path.join(path.resolve(), base, name, `${name.toLowerCase()}_${i}.jpg`)
+
+      const img = doc.openImage(imagePath)
+
+      doc.addPage({ size: [img.width, img.height] }).image(imagePath, 0, 0)
+    }
+
+    doc.end()
+
+    fs.rmdirSync(unzippedImagesFolderPath, { recursive: true })
+
+    console.log('> done')
+  }
+
+  console.log('')
+  console.log(`> finished downloading and converting ${downloadCount} chapters of ${inputName} in ${Math.floor(Date.now() / 1000) - startTime} seconds`)
+})()

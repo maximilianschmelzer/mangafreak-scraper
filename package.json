@@ -1,22 +1,13 @@
 {
-  "description": "mangafreak-to-pdf",
   "dependencies": {
+    "axios": "^0.21.1",
     "pdfkit": "^0.11.0",
-    "prompt": "^1.0.0",
-    "request": "^2.88.2",
     "unzipper": "^0.10.11"
   },
-  "devDependencies": {
-    "eslint": "^7.6.0",
-    "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-plugin-import": "^2.22.0"
-  },
-  "license": "ISC",
+  "license": "UNLICENSED",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/maximilianschmelzer/mangafreak-to-pdf.git"
   },
-  "scripts": {
-    "lint": "eslint manga.js --fix"
-  }
+  "type": "module"
 }

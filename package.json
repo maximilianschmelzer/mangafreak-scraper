@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "axios": "^0.21.1",
+    "pdfkit": "^0.11.0",
+    "unzipper": "^0.10.11",
+    "puppeteer": "^7.0.1"
+  },
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maximilianschmelzer/manga-dl.git"
+  },
+  "type": "module",
+  "scripts": {
+    "mangafreak": "node src/mangafreak",
+    "manganelo": "node src/manganelo"
+  }
+}

@@ -7,7 +7,7 @@ import axios from 'axios'
 (async () => {
   const startTime = Math.floor(Date.now() / 1000)
 
-  var myArgs = process.argv.slice(2)
+  const myArgs = process.argv.slice(2)
 
   const inputName = myArgs[0]
 
@@ -19,18 +19,24 @@ import axios from 'axios'
   let i = 1
   let downloadCount = 0
 
-  const mangaFolder = path.join(path.resolve(), 'downloads', inputName)
+  const basePath = path.join(path.resolve(), 'downloads', 'mangafreak')
+
+  if (!fs.existsSync(basePath)) {
+      fs.mkdirSync(basePath)
+  }
+
+  const mangaFolder = path.join(basePath, inputName)
+
   if (!fs.existsSync(mangaFolder)) {
-    fs.mkdirSync(mangaFolder)
+      fs.mkdirSync(mangaFolder)
   }
 
   while (true) {
     const name = `${inputName}_${i}`
-    const base = `downloads/${inputName}`
-    const unzippedImagesFolderPath = path.join(path.resolve(), 'downloads', inputName, name)
+    const unzippedImagesFolderPath = path.join(mangaFolder, name)
     const zippedImagesFolderPath = `${unzippedImagesFolderPath}.zip`
     const url = `http://images.mangafreak.net:8080/downloads/${name}`
-    const pdfPath = path.join(path.resolve(), 'downloads', inputName, `${name}.pdf`)
+    const pdfPath = path.join(mangaFolder, `${name}.pdf`)
 
     if (fs.existsSync(pdfPath)) {
       console.log('')
@@ -75,7 +81,7 @@ import axios from 'axios'
     doc.pipe(fs.createWriteStream(pdfPath))
 
     for (let i = 1; i <= files.length; i++) {
-      const imagePath = path.join(path.resolve(), base, name, `${name.toLowerCase()}_${i}.jpg`)
+      const imagePath = path.join(mangaFolder, name, `${name.toLowerCase()}_${i}.jpg`)
 
       const img = doc.openImage(imagePath)
 
@@ -84,7 +90,7 @@ import axios from 'axios'
 
     doc.end()
 
-    fs.rmdirSync(unzippedImagesFolderPath, { recursive: true })
+    //fs.rmdirSync(unzippedImagesFolderPath, { recursive: true })
 
     console.log('> done')
   }
